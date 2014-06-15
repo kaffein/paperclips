@@ -17,9 +17,13 @@ object Product {
 
   val sql: SqlQuery = SQL("select * from product order by name asc")
 
+  /**
+   * Querying in Anorm with the Streaming API
+   * @return
+   */
   def getAll: List[Product] = DB.withConnection { implicit connection =>
     sql().map { row =>
-      Product(row[Long]("id"), row[String]("name"), row[String]("description"))
+      Product(row[Long]("id"), row[Long]("ean"), row[String]("name"), row[String]("description"))
     }.toList
   }
 
