@@ -17,6 +17,49 @@ object Product {
   val sql: SqlQuery = SQL("select * from product order by name asc")
 
   /**
+   * Insert query in Anorm
+   * @param product
+   * @return
+   */
+  def insert(product: Product): Boolean = {
+    DB.withConnection { implicit connection =>
+      val addedRows = SQL(
+        """
+          |insert into products values ({id}, {ean}, {name}, {description})
+        """.stripMargin).on("id" -> product.id, "ean" -> product.ean, "name" -> product.name, "description" -> product.description).executeUpdate()
+      addedRows == 1
+    }
+  }
+
+  /**
+   * Update query in Anorm
+   * @param product
+   * @return
+   */
+  def update(product: Product): Boolean = {
+    DB.withConnection { implicit connection =>
+      val updatedRows = SQL(
+        """
+          |update products set name = {name}, ean = {ean}, description = {description}
+          |where id = {id}
+        """.stripMargin).on("name" -> product.name, "ean" -> product.ean, "description" -> product.description, "id" -> product.id).executeUpdate()
+      updatedRows == 1
+    }
+  }
+
+  /**
+   * Delete query in Anorm
+   * @param product
+   * @return
+   */
+  def delete(product: Product): Boolean = {
+    DB.withConnection { implicit connection =>
+      val deletedRows = SQL("delete from products where id = {id}").on("id" -> product.id).executeUpdate()
+      deletedRows == 0
+    }
+  }
+
+  /**
    * Querying in Anorm with the Streaming API
    * @return
    */
@@ -73,7 +116,13 @@ object Product {
                        |on (p.id = s.product_id)
                      """.stripMargin)
       val results = sql.as(productStockItemParser *)
-      results.groupBy { _._1 }.mapValues { _.map { _._2 }}
+      results.groupBy {
+        _._1
+      }.mapValues {
+        _.map {
+          _._2
+        }
+      }
     }
   }
 
